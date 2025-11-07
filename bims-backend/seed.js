@@ -19,6 +19,51 @@ const pool = new Pool({
     }
 });
 
+// ... after const pool = new Pool(...)
+
+const createTables = async (client) => {
+    console.log('Checking for tables...');
+
+    await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            employee_id TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            role TEXT NOT NULL,
+            password_hash TEXT NOT NULL
+        );
+    `);
+
+    await client.query(`
+        CREATE TABLE IF NOT EXISTS blockchain (
+            index INTEGER PRIMARY KEY,
+            timestamp TIMESTAMPTZ NOT NULL,
+            transaction JSONB NOT NULL,
+            previous_hash TEXT NOT NULL,
+            hash TEXT NOT NULL
+        );
+    `);
+
+    await client.query(`
+        CREATE TABLE IF NOT EXISTS locations (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            is_archived BOOLEAN DEFAULT false
+        );
+    `);
+
+    await client.query(`
+        CREATE TABLE IF NOT EXISTS categories (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            is_archived BOOLEAN DEFAULT false
+        );
+    `);
+
+    console.log('Tables are ready.');
+};
+
 const MOCK_USERS = [
     { employeeId: 'EMP-20251029-0001', name: 'Dr. Admin Ji', email: 'admin@bims.com', role: 'Admin' },
     { employeeId: 'EMP-20251029-0002', name: 'Manager Babu', email: 'manager@bims.com', role: 'Inventory Manager' },
@@ -44,6 +89,7 @@ async function seedDatabase() {
     
     try {
         await client.query('BEGIN'); // Start transaction
+        await createTables(client);
         
         // --- 1. Seed Users ---
         console.log('Seeding users...');
