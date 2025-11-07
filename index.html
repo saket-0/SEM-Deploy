@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIMS - Blockchain Inventory Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    </head>
+<body class="bg-slate-100 text-slate-900">
+
+    <div id="login-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-75 backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
+            <h2 class="text-3xl font-bold text-center text-indigo-600 mb-6">BIMS Login</h2>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email-input" class="block text-sm font-medium text-slate-700">Email</label>
+                    <input type="email" id="login-email-input" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., admin@bims.com" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-slate-700">Password</label>
+                    <input type="password" id="login-password" value="password" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                    <p class="text-xs text-slate-500 mt-1">Use "password" for any user.</p>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Login
+                </button>
+            </form>
+            
+            <div class="relative my-4">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div class="w-full border-t border-slate-300"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="bg-white px-2 text-sm text-slate-500">Or quick login as</span>
+                </div>
+            </div>
+
+            <div>
+                <label for="login-email-select" class="sr-only">Quick Login As</label>
+                <select id="login-email-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </select>
+                <button id="quick-login-button" class="mt-2 w-full bg-slate-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+                    Login as Selected User
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="app-wrapper" class="flex h-screen hidden">
+        <nav class="w-64 bg-white shadow-lg flex flex-col">
+            <div class="p-4 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-indigo-600">BIMS</h1>
+                <p class="text-sm text-slate-500">Inventory Management</p>
+            </div>
+            
+            <div class="p-4 border-b border-slate-200">
+                <h3 id="user-name" class="font-semibold text-slate-800"></h3>
+                <p id="user-role" class="text-sm text-indigo-600 font-medium"></p>
+                <p id="user-employee-id" class="text-xs text-slate-500 mt-1"></p>
+                <button id="logout-button" class="w-full text-left text-sm text-red-600 hover:text-red-800 font-medium mt-3">
+                    Logout
+                </button>
+            </div>
+
+            <ul class="flex-1 p-2 space-y-1">
+                <li>
+                    <a href="#" id="nav-dashboard" class="nav-link">
+                        <i class="ph-bold ph-chart-pie-slice"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-products" class="nav-link">
+                        <i class="ph-bold ph-package"></i> Products
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-analytics" class="nav-link">
+                        <i class="ph-bold ph-chart-line"></i> Analytics
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-anomaly" class="nav-link">
+                        <i class="ph-bold ph-shield-warning"></i> Anomaly Detection
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-admin" class="nav-link">
+                        <i class="ph-bold ph-users"></i> Admin
+                    </a>
+                </li>
+                <li>
+                    <a href="#" id="nav-ledger" class="nav-link">
+                        <i class="ph-bold ph-cube"></i> Full Ledger
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="flex-1 bg-slate-100 overflow-y-auto">
+            <div id="app-content" class="p-4 md:p-8">
+                </div>
+        </main>
+    </div>
+
+    <div id="error-toast" class="toast-message bg-red-600">
+        <span id="error-message"></span>
+    </div>
+    <div id="success-toast" class="toast-message bg-green-600">
+        <span id="success-message"></span>
+    </div>
+
+
+    <template id="dashboard-view-template">
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-slate-800">Dashboard</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Total Value</h3>
+                    <p id="kpi-total-value" class="text-4xl font-bold text-indigo-600">₹0.00</p>
+                    <p class="text-xs text-slate-400 mt-1">Inventory valuation</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Total Units</h3>
+                    <p id="kpi-total-units" class="text-4xl font-bold text-indigo-600">0</p>
+                    <p class="text-xs text-slate-400 mt-1">All units across all locations</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Transactions</h3>
+                    <p id="kpi-transactions" class="text-4xl font-bold text-indigo-600">0</p>
+                    <p class="text-xs text-slate-400 mt-1">Blockchain records</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div id="recent-activity-container" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-slate-800">Recent Activity</h2>
+                        <a href="#" id="dashboard-view-ledger" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">View Full Ledger &rarr;</a>
+                    </div>
+                    <div id="recent-activity-list" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                        </div>
+                    <p id="recent-activity-empty" class="text-sm text-slate-500" style="display: none;">No transactions found.</p>
+                </div>
+
+                <div id="low-stock-container" class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-slate-800">Low Stock Items</h2>
+                        <span id="low-stock-threshold-label" class="text-sm font-medium text-slate-500"></span>
+                    </div>
+                    <div id="low-stock-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        </div>
+                    <p id="low-stock-empty" class="text-sm text-slate-500" style="display: none;">All items are well-stocked.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Database Options</h2>
+                    <p class="text-sm text-slate-500 mb-4">The blockchain is saved on the server.</p>
+                    <button id="clear-db-button" class="w-full bg-red-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-trash"></i>
+                        Clear Server Database & Reset
+                    </button>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Chain Integrity</h2>
+                    <p class="text-sm text-slate-500 mb-4">Verify the immutability of the server's ledger.</p>
+                    <button id="verify-chain-button" class="w-full bg-teal-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-check-shield"></i>
+                        Verify Blockchain
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="product-list-view-template">
+        <div class="space-y-8">
+            <div id="add-item-container" class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add New Product Type</h2>
+                <p class="text-sm text-slate-500 mb-4">Add a new product (SKU) to the inventory system. Initial stock will be added to the 'Supplier'.</p>
+                
+                <form id="add-item-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="add-product-id" class="block text-sm font-medium text-slate-700">Product ID (SKU)</label>
+                            <input type="text" id="add-product-id" value="SKU-101" class="form-input-underline" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="add-product-name" class="block text-sm font-medium text-slate-700">Product Name</label>
+                            <input type="text" id="add-product-name" value="Smart Watch" class="form-input-underline" required>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="add-product-category" class="block text-sm font-medium text-slate-700">Category</label>
+                            <select id="add-product-category" class="form-select-underline" required>
+                                </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="add-quantity" class="block text-sm font-medium text-slate-700">Initial Quantity</label>
+                            <input type="number" id="add-quantity" value="100" class="form-input-underline" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="add-price" class="block text-sm font-medium text-slate-700">Initial Price (₹)</label>
+                            <input type="number" id="add-price" value="199.99" step="0.01" class="form-input-underline" required>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="add-to" class="block text-sm font-medium text-slate-700">Add to Location</label>
+                            <select id="add-to" class="form-select-underline">
+                                </select>
+                        </div>
+                        </div>
+                    <button type="submit" class="w-full md:w-auto bg-indigo-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-plus-circle"></i>
+                        Add Product
+                    </button>
+                </form>
+                </div>
+
+            <div>
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                    <h2 class="text-3xl font-semibold text-slate-800">Product Inventory</h2>
+                    <div class="relative w-full md:w-1/3">
+                        <input type="text" id="product-search-input" placeholder="Search by SKU or Name..." class="w-full pl-10 pr-4 py-2 rounded-md border border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="product-detail-view-template">
+        <div class="space-y-8">
+            <div>
+                <button id="back-to-list-button" class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                    <i class="ph-bold ph-arrow-left"></i>
+                    Back to All Products
+                </button>
+            </div>
+        
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="w-full md:w-1/3 h-48 bg-slate-200 rounded-lg flex items-center justify-center">
+                                <i class="ph-bold ph-package text-slate-400 text-6xl"></i>
+                            </div>
+                            <div class="w-full md:w-2/3">
+                                <h2 id="detail-product-name" class="text-4xl font-bold text-slate-900">Product Name</h2>
+                                <p id="detail-product-id" class="text-sm text-slate-500 mt-1">SKU-000</p>
+                                <p id="detail-product-category" class="text-sm font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full inline-block mt-2">Category</p>
+                                <p id="detail-product-price" class="text-3xl font-bold text-slate-700 mt-2">₹0.00</p>
+                                <hr class="my-4">
+                                <h3 class="text-lg font-semibold text-slate-800 mb-2">Current Stock Levels</h3>
+                                <div id="detail-stock-levels" class="space-y-2">
+                                    </div>
+                                <hr class="my-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-slate-800">Total Stock:</span>
+                                    <span id="detail-total-stock" class="text-2xl font-bold text-indigo-600">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-2xl font-semibold mb-4 text-slate-800">Verifiable Stock History</h2>
+                        <canvas id="item-stock-chart"></canvas>
+                    </div>
+
+                    <div id="update-stock-container" class="bg-white p-6 rounded-lg shadow-md space-y-8">
+                        <div>
+                            <h2 class="text-2xl font-semibold mb-4 text-slate-800">Update Stock (Add/Remove)</h2>
+                            <p class="text-sm text-slate-500 mb-4">Add or remove stock from a single location.</p>
+                            <form id="update-stock-form" class="space-y-4">
+                                <input type="hidden" id="update-product-id" value="">
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="update-quantity" class="block text-sm font-medium text-slate-700">Quantity</label>
+                                        <select id="update-quantity" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <option>1</option>
+                                            <option>5</option>
+                                            <option selected>10</option>
+                                            <option>25</option>
+                                            <option>50</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="update-location" class="block text-sm font-medium text-slate-700">Location</label>
+                                        <select id="update-location" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </select>
+                                    </div>
+                                    </div>
+
+                                <div class="flex flex-col sm:flex-row gap-4">
+                                    <button type="submit" id="stock-in-button" data-action="STOCK_IN" class="w-full bg-green-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                                        <i class="ph-bold ph-plus-circle"></i>
+                                        Add Stock
+                                    </button>
+                                    <button type="submit" id="stock-out-button" data-action="STOCK_OUT" class="w-full bg-red-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                                        <i class="ph-bold ph-minus-circle"></i>
+                                        Remove Stock
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="border-t border-slate-200 pt-6">
+                            <h2 class="text-2xl font-semibold mb-4 text-slate-800">Move Stock</h2>
+                            <p class="text-sm text-slate-500 mb-4">Transfer stock between two locations.</p>
+                            <form id="move-stock-form" class="space-y-4">
+                                <div>
+                                    <label for="move-quantity" class="block text-sm font-medium text-slate-700">Quantity</label>
+                                    <select id="move-quantity" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                        <option>1</option>
+                                        <option>5</option>
+                                        <option selected>10</option>
+                                        <option>25</option>
+                                        <option>50</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    
+                                    <div>
+                                        <label for="move-from-location" class="block text-sm font-medium text-slate-700">From Location</label>
+                                        <select id="move-from-location" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </select>
+                                    </div>
+                                    <div>
+                                        <label for="move-to-location" class="block text-sm font-medium text-slate-700">To Location</label>
+                                        <select id="move-to-location" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            </select>
+                                    </div>
+                                    </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                                    <i class="ph-bold ph-arrows-left-right"></i>
+                                    Move Stock
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1">
+                    <div class="bg-white p-6 rounded-lg shadow-md sticky top-8">
+                        <h2 class="text-2xl font-semibold mb-4 text-slate-800">Item History</h2>
+                        <p class="text-sm text-slate-500 mb-4">Immutable transaction log for this item.</p>
+                        <div id="item-history-display" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="ledger-view-template">
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-slate-800">Full Blockchain Ledger</h1>
+
+            <div id="snapshot-form-container" class="bg-white p-6 rounded-lg shadow-md" style="display: none;">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Time-Travel Audit</h2>
+                <p class="text-sm text-slate-500 mb-4">
+                    Select a date and time to generate a verifiable, read-only snapshot
+                    of the entire inventory state as it existed at that moment.
+                </p>
+                <form id="snapshot-form" class="flex flex-col md:flex-row items-end gap-4">
+                    <div class="flex-1 w-full">
+                        <label for="snapshot-timestamp" class="block text-sm font-medium text-slate-700">Snapshot Date & Time</label>
+                        <input type="datetime-local" id="snapshot-timestamp" class="form-input-underline" required>
+                    </div>
+                    <button type="submit" id="generate-snapshot-button" class="w-full md:w-auto bg-teal-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-timer"></i>
+                        Generate Snapshot
+                    </button>
+                </form>
+            </div>
+
+            <p class="text-lg text-slate-600">The immutable history of all transactions (Newest block on top).</p>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div id="full-ledger-display" class="space-y-4 max-h-[80vh] overflow-y-auto pr-2">
+                    </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="admin-view-template">
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-slate-800">Admin Panel</h1>
+            
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">User Management</h2>
+                <p class="text-sm text-slate-500 mb-4">Manage user roles. Changes are sent to the backend database.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="table-header">Name</th>
+                                <th class="table-header">Employee ID</th>
+                                <th class="table-header">Email</th>
+                                <th class="table-header">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-management-table" class="bg-white divide-y divide-slate-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-semibold mb-4 text-slate-800">Add New User</h2>
+                <form id="add-user-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="add-user-name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                            <input type="text" id="add-user-name" class="form-input-underline" placeholder="Jane Doe" required>
+                        </div>
+                        <div>
+                            <label for="add-user-email" class="block text-sm font-medium text-slate-700">Email</label>
+                            <input type="email" id="add-user-email" class="form-input-underline" placeholder="jane@bims.com" required>
+                        </div>
+                        <div>
+                            <label for="add-user-employee-id" class="block text-sm font-medium text-slate-700">Employee ID</label>
+                            <input type="text" id="add-user-employee-id" class="form-input-underline" placeholder="EMP-20251029-0004" required>
+                        </div>
+                        <div>
+                            <label for="add-user-role" class="block text-sm font-medium text-slate-700">Role</label>
+                            <select id="add-user-role" class="form-select-underline">
+                                <option value="Inventory Manager">Inventory Manager</option>
+                                <option value="Auditor">Auditor</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="add-user-password" class="block text-sm font-medium text-slate-700">Password</label>
+                        <input type="password" id="add-user-password" class="form-input-underline" required>
+                    </div>
+                    <button type="submit" class="w-full md:w-auto bg-indigo-600 text-white py-2 px-6 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-plus-circle"></i>
+                        Add User
+                    </button>
+                </form>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Location Management</h2>
+                    <form id="add-location-form" class="flex gap-4 mb-4">
+                        <input type="text" id="add-location-name" class="form-input-underline flex-1" placeholder="New Location Name" required>
+                        <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700">Add</button>
+                    </form>
+                    <div class="space-y-2" id="location-list-container">
+                        </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Category Management</h2>
+                    <form id="add-category-form" class="flex gap-4 mb-4">
+                        <input type="text" id="add-category-name" class="form-input-underline flex-1" placeholder="New Category Name" required>
+                        <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded-md shadow-sm hover:bg-indigo-700">Add</button>
+                    </form>
+                    <div class="space-y-2" id="category-list-container">
+                        </div>
+                </div>
+            </div>
+            </div>
+    </template>
+
+    <template id="snapshot-view-template">
+        <div class="space-y-8">
+            <div class="p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
+                <h1 class="text-3xl font-bold text-yellow-900">
+                    Read-Only Inventory Snapshot
+                </h1>
+                <p class="text-lg font-medium text-yellow-800">
+                    Viewing state as of: <strong id="snapshot-time-display"></strong>
+                </p>
+                <button id="back-to-ledger-button" class="mt-2 inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                    <i class="ph-bold ph-arrow-left"></i>
+                    Back to Full Ledger
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md opacity-80">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Total Value (at time)</h3>
+                    <p id="kpi-snapshot-total-value" class="text-4xl font-bold text-indigo-600">₹0.00</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md opacity-80">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Total Units (at time)</h3>
+                    <p id="kpi-snapshot-total-units" class="text-4xl font-bold text-indigo-600">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md opacity-80">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Transactions (at time)</h3>
+                    <p id="kpi-snapshot-transactions" class="text-4xl font-bold text-indigo-600">0</p>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-3xl font-semibold text-slate-800 mb-4">Products in System (at time)</h2>
+                <div id="snapshot-product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="analytics-view-template">
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-slate-800">Analytics Dashboard</h1>
+            <p class="text-lg text-slate-600">Verifiable business insights from the immutable ledger.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Transaction Velocity (Last 7 Days)</h2>
+                    <canvas id="tx-velocity-chart"></canvas>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Transaction Activity by Hour (UTC)</h2>
+                    <canvas id="tx-heatmap-chart"></canvas>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">Inventory Value by Location</h2>
+                    <div class="max-w-xs mx-auto">
+                        <canvas id="inventory-distribution-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                     <h2 class="text-2xl font-semibold mb-4 text-slate-800">Inventory Value by Category</h2>
+                     <div class="max-w-xs mx-auto">
+                        <canvas id="inventory-category-chart"></canvas>
+                     </div>
+                </div>
+
+                </div>
+        </div>
+    </template>
+
+    <template id="anomaly-view-template">
+        <div class="space-y-8">
+            <h1 class="text-4xl font-bold text-slate-800">Anomaly Detection Report</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">Total Anomalies Flagged</h3>
+                    <p id="kpi-total-anomalies" class="text-4xl font-bold text-red-600">0</p>
+                    <p class="text-xs text-slate-400 mt-1">Unique transactions flagged</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase">% of Transactions Flagged</h3>
+                    <p id="kpi-percent-flagged" class="text-4xl font-bold text-red-600">0%</p>
+                    <p class="text-xs text-slate-400 mt-1">Flagged blocks vs. total blocks</p>
+                </div>
+            </div>
+
+            <div id="anomaly-list-container" class="space-y-8">
+                </div>
+        </div>
+    </template>
+
+    <script src="config.js"></script>
+    <script src="core.js"></script>
+    <script src="js/ui-utils.js"></script>
+    <script src="js/chart-renderer.js"></script>
+    <script src="js/view-renderer.js"></script>
+    <script src="js/anomaly-renderer.js"></script>
+    <script src="js/form-handlers.js"></script>
+    <script src="app.js" defer></script>
+
+</body>
+</html>

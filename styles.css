@@ -1,0 +1,199 @@
+/* Custom styles for the Inter font */
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+/* Custom scrollbar for scrollable areas */
+#item-history-display::-webkit-scrollbar,
+#full-ledger-display::-webkit-scrollbar,
+#recent-activity-list::-webkit-scrollbar,
+/* *** Added low stock list *** */
+#low-stock-list::-webkit-scrollbar {
+    width: 6px;
+}
+#item-history-display::-webkit-scrollbar-track,
+#full-ledger-display::-webkit-scrollbar-track,
+#recent-activity-list::-webkit-scrollbar-track,
+/* *** Added low stock list *** */
+#low-stock-list::-webkit-scrollbar-track {
+    background: #f1f5f9; /* slate-100 */
+}
+#item-history-display::-webkit-scrollbar-thumb,
+#full-ledger-display::-webkit-scrollbar-thumb,
+#recent-activity-list::-webkit-scrollbar-thumb,
+/* *** Added low stock list *** */
+#low-stock-list::-webkit-scrollbar-thumb {
+    background: #94a3b8; /* slate-400 */
+    border-radius: 3px;
+}
+#item-history-display::-webkit-scrollbar-thumb:hover,
+#full-ledger-display::-webkit-scrollbar-thumb:hover,
+#recent-activity-list::-webkit-scrollbar-thumb:hover,
+/* *** NEW: Added low stock list *** */
+#low-stock-list::-webkit-scrollbar-thumb:hover {
+    background: #64748b; /* slate-500 */
+}
+
+/* Toast message styles */
+.toast-message {
+    position: fixed;
+    bottom: 2rem; /* 32px */
+    right: 2rem; /* 32px */
+    color: white;
+    padding: 0.75rem 1.5rem; /* 12px 24px */
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateX(200%);
+    transition: transform 300ms ease-out;
+    z-index: 100;
+}
+
+.toast-show {
+    transform: translateX(0);
+}
+
+/* Product Card styles */
+.product-card {
+    background-color: white;
+    border-radius: 0.5rem; /* 8px */
+    border: 1px solid #e2e8f0; /* slate-200 */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    overflow: hidden;
+}
+.product-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+    border-color: #c7d2fe; /* indigo-200 */
+}
+.product-card-placeholder {
+    background-color: #f1f5f9; /* slate-100 */
+    height: 10rem; /* 160px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.product-card-placeholder i {
+    font-size: 3rem; /* 48px */
+    color: #94a3b8; /* slate-400 */
+}
+.product-card-content {
+    padding: 1rem; /* 16px */
+}
+
+/* Sidebar Navigation Link Styles */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px */
+    padding: 0.75rem 1rem; /* 12px 16px */
+    border-radius: 0.375rem; /* 6px */
+    font-medium;
+    color: #334155; /* slate-700 */
+    transition: all 0.2s ease-in-out;
+}
+.nav-link:hover {
+    background-color: #f1f5f9; /* slate-100 */
+    color: #1e293b; /* slate-800 */
+}
+.nav-link.active {
+    background-color: #eef2ff; /* indigo-50 */
+    color: #4f46e5; /* indigo-600 */
+    font-weight: 600;
+}
+.nav-link i {
+    font-size: 1.25rem; /* 20px */
+}
+
+/* Admin Table Styles */
+.table-header {
+    padding: 0.75rem 1.5rem; /* 12px 24px */
+    text-align: left;
+    font-size: 0.75rem; /* 12px */
+    font-medium;
+    color: #475569; /* slate-600 */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.table-cell {
+    padding: 1rem 1.5rem; /* 16px 24px */
+    font-size: 0.875rem; /* 14px */
+    color: #1e293b; /* slate-800 */
+    white-space: nowrap;
+}
+
+/* *** Canvas and Chart Styles *** */
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+#tx-velocity-chart,
+#tx-heatmap-chart,
+#item-stock-chart {
+    min-height: 250px;
+}
+#inventory-distribution-chart,
+#inventory-category-chart {
+    min-height: 250px;
+}
+
+
+/* *** Hide number input spinners *** */
+/* For Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* For Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* *** Underlined form inputs *** */
+.form-input-underline {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+    border-bottom: 2px solid #cbd5e1; /* slate-300 */
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    /* *** MODIFIED: Reduced vertical padding *** */
+    padding: 0.25rem 0.1rem;
+    background-color: transparent;
+}
+.form-input-underline:focus {
+    outline: none;
+    border-bottom-color: #4f46e5; /* indigo-600 */
+}
+.form-select-underline {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+    border-bottom: 2px solid #cbd5e1; /* slate-300 */
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    /* *** MODIFIED: Reduced vertical padding *** */
+    padding: 0.25rem 0.1rem;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%logo%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+}
+.form-select-underline:focus {
+    outline: none;
+    border-bottom-color: #4f46e5; /* indigo-600 */
+}
