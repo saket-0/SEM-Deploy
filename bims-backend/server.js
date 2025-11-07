@@ -1,5 +1,6 @@
 // Lap/bims-backend/server.js
-const { createTables } = require('./db-init');
+// const { createTables } = require('./db-init');
+const { initializeDatabase } = require('./db-init');
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -122,7 +123,8 @@ const startServer = async () => {
     try {
         // 1. Ensure tables exist before doing anything else
         console.log('Initializing database...');
-        await createTables(pool);
+        // await createTables(pool);
+        await initializeDatabase(pool);
 
         // 2. Now, start the server
         const PORT = process.env.PORT || 3000;
