@@ -1,4 +1,5 @@
 // Lap/bims-backend/server.js
+const { createTables } = require('./db-init');
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -108,10 +109,32 @@ app.use('/api/locations', locationRoutes(pool));
 app.use('/api/categories', categoryRoutes(pool)); 
 
 
-// --- 8. Start Server ---
-const PORT = process.env.PORT || 3000;
+// // --- 8. Start Server ---
+// const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('\n=================================');
-    console.log(`🚀 BIMS Server Started on port ${PORT}`);
-});
+// app.listen(PORT, '0.0.0.0', () => {
+//     console.log('\n=================================');
+//     console.log(`🚀 BIMS Server Started on port ${PORT}`);
+// });
+
+// --- 8. Start Server ---
+const startServer = async () => {
+    try {
+        // 1. Ensure tables exist before doing anything else
+        console.log('Initializing database...');
+        await createTables(pool);
+
+        // 2. Now, start the server
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log('\n=================================');
+            console.log(`🚀 BIMS Server Started on port ${PORT}`);
+            console.log('=================================\n');
+        });
+    } catch (e) {
+        console.error('❌ CRITICAL: Failed to initialize database. Server not started.', e);
+        process.exit(1); // Exit if DB init fails
+    }
+};
+
+startServer(); // Call the function to start everything

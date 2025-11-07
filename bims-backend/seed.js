@@ -89,7 +89,7 @@ async function seedDatabase() {
     
     try {
         await client.query('BEGIN'); // Start transaction
-        await createTables(client);
+        // await createTables(client);
         
         // --- 1. Seed Users ---
         console.log('Seeding users...');
