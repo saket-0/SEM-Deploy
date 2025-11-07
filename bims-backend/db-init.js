@@ -57,14 +57,38 @@ const initializeDatabase = async (pool) => {
             );
         `);
         
+        // await client.query(`
+        //     CREATE TABLE IF NOT EXISTS "user_sessions" (
+        //       "sid" varchar NOT NULL COLLATE "default",
+        //       "sess" json NOT NULL,
+        //       "expire" timestamptz(6) NOT NULL,
+        //       CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE
+        //     );
+        // `);
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS "user_sessions" (
               "sid" varchar NOT NULL COLLATE "default",
               "sess" json NOT NULL,
-              "expire" timestamptz(6) NOT NULL,
-              CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE
-            );
+              "expire" timestamptz(6) NOT NULL
+            )
+            WITH (OIDS=FALSE);
         `);
+        // Add primary key constraint ONLY if it doesn't exist
+        await client.query(`
+            DO $$
+            BEGIN
+              IF NOT EXISTS (
+                SELECT 1
+                FROM   pg_constraint
+                WHERE  conname = 'user_sessions_pkey'
+              ) THEN
+                ALTER TABLE "user_sessions" ADD CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+              END IF;
+            END;
+            $$
+        `);
+        
         console.log('Tables are ready.');
 
         // 2. Seed Users
