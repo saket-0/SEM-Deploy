@@ -45,7 +45,7 @@ app.use(cors({
             'http://127.0.0.1:5501', 
             'http://localhost:5501',
             'https://my-bims-app.netlify.app',
-            'https://my-bims-app.netlify.app/'
+            'my-bims-app.netlify.app'
         ];
         
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
